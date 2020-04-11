@@ -3,84 +3,54 @@ Advanced date picker based in Nepali calendar. Supports both single date selecti
 
 ## Getting Started
 
-This plugin requires 
-
-### Prerequisites
-
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
-
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+Include these files
 
 ```
-Give the example
+<script src="/path/to/jquery.js"></script><!-- jQuery is required -->
+<link  href="/path/to/advanced-nepali-date-picker.css" rel="stylesheet">
+<script src="/path/to/advanced-nepali-date-picker.js"></script>
 ```
 
-And repeat
+### Usage
+
+Initialize with $.fn.advancedNepaliDatePicker method.
 
 ```
-until finished
+<input class="datepicker">
+$('.datepicker').advancedNepaliDatePicker();
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+## Options
 
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
+You can choose single date selection or multi date selection. By default it is multi-date selection.
+If you want to use single date selection then add ".single" class in your input field.
 ```
-Give an example
+<input class="datepicker single">
 ```
 
-### And coding style tests
+### Additional Options
+In multi date selection mode, selected date is displayed in 3 different ways.
+* If only 1 day is selected, then it will show selected date as value in input field.
+* If more than 1 day is selected, then following message will be shown in input field:
+  ````
+  * dates selected
+  ````
+  * To show multiple dates as value, use "data-show_all_dates="true" in input field.
 
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
+By default, 
 ## Built With
 
 * [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
 * [Maven](https://maven.apache.org/) - Dependency Management
 * [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Sanil Shakya** - (https://www.sanil.com.np)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
