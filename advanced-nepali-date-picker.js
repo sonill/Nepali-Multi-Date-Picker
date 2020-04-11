@@ -1,119 +1,158 @@
 (function ( $ ) {
 
-	var $body = $('body');
+    var $body = $('body');
 
+    // initialize date converter
     var converter = new DateConverter();
     converter.setCurrentDate();
 
+    // disable autocomplete
     $('form').attr('autocomplete','off');
+
+    // give each calendar instance a unique id
+    var cal_no = 1;
+    var cal_id = '';
     
+    // set default date to this month
+    var this_year = converter.getNepaliYear();
+    var this_month = converter.getNepaliMonth();
+    
+    // calendar config
+    var start_year = 2000;
+    var end_year = 2098;
+    
+    // is this single datepicker
+    var single_datepicker = 0;
+
+    // calendar ui selector
+    var $year_select = '';
+    var $month_select = '';
+    var $days_container = '';
+    
+    // for multiple selection
+    var user_selected_dates = []; // this will hold all the user selected dates
+    var last_captured_date = '';  // get last captured date, will be used to select days in multiple selection
+    var input_field_name = '';
+    
+    // show different message according to os
+    var os = 'win';
+    var $selector = ''; // currently active selector
+    var $form = ''; // parent form of selected selector
+
     $.fn.advancedNepaliDatePicker = function( options  ) {
 
-        var inline_datepicker = 0;
-        var $inline_selector = '';
-    
-        var this_year = converter.getNepaliYear();
-        var this_month = converter.getNepaliMonth();
-        var start_year = 2000;
-        var end_year = 2098;
-        var $days_container = '';
-        var $year_select = '';
-        var $month_select = '';
-        var user_selected_dates = [];
-        var last_captured_date = '';
+        var defaults = {
+            show_all_dates: false,
+        };
 
-        var hidden_field_name = '';
+        // detect OS
+        if(navigator.platform.toUpperCase().indexOf('MAC')>=0) {
+            os = 'mac';
+        }
 
         // give calendar a unique id
-
-        var cal_no = 1;
         $(this).each(function(){
-
+            // give unique id to each calendar instance
             $(this).attr('data-cal_id', 'cal-' + cal_no);
             cal_no++;
 
-            // this will run once only in startup
-            // generate hidden fields if not inline date picker
+            // add common class to all input fields
+            $(this).addClass('andp-date-picker');
 
-            var hidden_inputs = '';
+            
+            // this will run only once
+            // generate input hidden fields if date value already exist
+            var default_value = $(this).val();
+            
+            if( default_value && !$(this).hasClass('single')){
+                
+                // set form 
+                $form = $(this).parents('form');
 
-            if( !$(this).hasClass('andp-inline') ){
-
-                // generate hidden input field with name similar to main selector input
-                hidden_field_name = $(this).data('name');
+                // set calendar id
                 cal_id = $(this).data('cal_id');
 
-                // if there is value, then use it
-                $('span.badge-date', this).each(function(){
+                // this will be used to generate hidden input fields with same input name
+                input_field_name = $(this).attr('name');
 
-                    hidden_inputs += '<input type="hidden" class="hidden-andp-dates dynamic" name="' + hidden_field_name + '[]" data-cal_id="' + cal_id + '" value="' + $(this).text() + '">';
-    
+                var default_dates = default_value.split(',');
+                default_dates.forEach(function(item, index){
+                    generate_hidden_input_fields(item.trim());
                 })
+                
+                if( $(this).data('show_all_dates') != true){
 
-                $('#new-ads-form').append(hidden_inputs);
+                    if( default_dates.length > 1) {
+                        output_msg = default_dates.length + ' dates selected';
+                    }
+                    else{
+                        output_msg = default_dates[0];
+                    }
+                    
+                    // show message to main selector field
+                    $(this).attr('value', output_msg );
+                }
 
             }
-
-        }) 
-        // end each loop
+        })
 
 
+        // when user clicks in input / selector field
         $(this).click(function(){
 
             user_selected_dates = [];
-            hidden_field_name = $(this).data('name');
+            $selector = $(this);
 
-
-            // remove previous instance of calendar
-            $(".andp-datepicker-container").remove();
-
-            if( $(this).hasClass('andp-inline') ){
-                inline_datepicker = 1;
-                $inline_selector = $(this);
-    
-                $('.andp-info').show();
+            if( $(this).hasClass('single') ){
+                single_datepicker = 1;
             }
             else{
-                inline_datepicker = 0;
-                $('.andp-info').hide();
+                single_datepicker = 0;
             }
-            
 
+            // set calendar id
             cal_id = $(this).data('cal_id');
 
             // initiate calendar ui
-            init( cal_id );
+            init( this );
 
-            // calendar layout and position in dom
-            var elem_pos = $(this).offset();
-            var elem_height = $(this).outerHeight();
-
-            // var right_offset = $('body').width() - elem_pos.left - $(this).innerWidth()-2;
-
-            $('.andp-datepicker-container').addClass('open').css({'top': elem_pos.top + elem_height, 'left': elem_pos.left });
-
-
-            if( inline_datepicker ){
+            if( single_datepicker ){
 
                 // inline calendar
                 selected_date = $(this).val();
-                select_date(selected_date );
-                // just_select_dates(selected_date);
 
-                user_selected_dates.push(selected_date);
+                // add this date into selected dates arary
 
                 // switch calendar to selected month and year
                 if( selected_date.length > 0 ){
                     older_date_ar = selected_date.split('-');
                     $month_select.val(older_date_ar[1]).change();
                     $year_select.val(older_date_ar[0]).change();
+                    
+                    // select default date
+                    select_date(selected_date );
                 }
                 
             }
             else{
                 // multi select calendar
 
-                var $hidden_publish_dates = $('input.hidden-andp-dates[data-cal_id="' + cal_id + '"]');
+                $form = $(this).parents('form');
+
+                // this will be used to generate hidden input fields with same input name
+                input_field_name = $(this).attr('name');
+
+                if( input_field_name ){
+                    // remove name attr from selector
+                    $(this).removeAttr('name', '').attr('data-name', input_field_name);
+                }
+                else{
+                    // input_field_name is missing
+                    // get it from data-name
+                    input_field_name = $(this).attr('data-name');
+                }
+
+                var $hidden_publish_dates = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]');
                 var total_hidden_dates = $hidden_publish_dates.length;
 
                 if( total_hidden_dates > 0){
@@ -125,10 +164,10 @@
                     })
 
                     // last selected date
-                    older_date = $('input.hidden-andp-dates[data-cal_id="' + cal_id + '"]:last-child').val();
+                    older_date = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]:last-child').val();
 
                     // switch calendar to last month and year of selected date
-                    if( older_date.length > 0 ){
+                    if( older_date && older_date.length > 0 ){
                         older_date_ar = older_date.split('-');
 
                         $month_select.val(older_date_ar[1]).change();
@@ -140,394 +179,492 @@
     
         })
 
-        function init(cal_id){
+        // update days when month or year is changed
+        $body.on('change', '.andp-month-select, .andp-year-select', function(){
+            generate_days();
+        });
+        
+    };
 
-            var template = '<div class="andp-datepicker-container" data-cal_id="' + cal_id +  '" >';
+    // change months on button click
+    $body.on('click', '.andp-datepicker-container.open .andp-change-months', function(event){
+        // show next month
+        selected_month = parseInt($month_select.val()) ;
+        selected_year = parseInt($year_select.val());
+
+        if( $(this).hasClass('andp-next')){
+            // next month
+            selected_month = selected_month + 1;
+            if( selected_month > 12){
+                selected_month = 1;
+                selected_year = selected_year + 1;
+
+                if( selected_year > end_year){
+                    selected_year = end_year;
+                    selected_month = 12;
+                }
+            }
+        }
+        else{
+            // previous month
+            selected_month = selected_month - 1;
+            if( selected_month < 1){
+                selected_month = 12;
+                selected_year = selected_year - 1;
+
+                if( selected_year < start_year){
+                    selected_year = start_year;
+                    selected_month = 1;
+                }
+            }
+        }
+        
+
+        $month_select.val( selected_month ).change();
+        $year_select.val( selected_year ).change();
+
+    });
+    
+
+    // if clicked in days when datepicker is open
+    $body.on('click', '.andp-datepicker-container.open .andp-days-numbers .day', function(event){
+
+        selected_day = $(this).text();
+        selected_date = $(this).data('date'); 
+
+        var $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
+
+
+        // disable shift or ctrl key on single_datepicker
+
+        if( single_datepicker ){
+
+            // reset user_selected_dates
+            user_selected_dates = [];
+
+            // remove all other selected class
+            $sel_calendar.find('.andp-column .day').removeClass('selected');
+
+            // select date function
+            select_date(selected_date );
+
+            $sel_calendar.find('.andp-info').hide();
+        }
+        else{
+
+            // multiple selection
+
+            if (event.shiftKey) {
+
+                // shift key pressed
+
+                var total_captured_dates = user_selected_dates.length;
+
+                if( total_captured_dates > 0){
+                    selected_date = $(this).data('date'); 
+                    last_captured_date =  user_selected_dates[total_captured_dates-1];
+
+                    // get older date
+                    var smaller_date = (find_older_date( selected_date, last_captured_date)) ? last_captured_date :  selected_date;
+                    var next_date = smaller_date;
+
+                    var days_difference = get_days_difference(selected_date, last_captured_date);
+
+                    // reset all captured dates
+                    user_selected_dates = [];
+
+                    $sel_calendar.find('.andp-column .day').removeClass('selected');
+
+                    select_date(next_date );
+
+                    for( i = 1; i <= days_difference; i++){
+
+                        next_date = get_next_day(next_date);
+                        select_date(next_date );
+                    }
+                    
+                }
+            } 
+            else  if (event.ctrlKey || event.metaKey) {
+
+                // ctrl or cmd key pressed
+                select_date(selected_date );
+            }
+            else{
+
+                // no  ctrl, shift or cmd key was presed ---------------------
+
+                // reset user_selected_dates
+                user_selected_dates = [];
+
+                // remove other selected class
+                $sel_calendar.find('.andp-column .day').removeClass('selected');
+
+                // select correct day
+                select_date(selected_date );
+
+                // show message for multiple selection
+                $sel_calendar.find('.andp-info').show();
+                
+            }
+
+        }
+
+        
+
+    })
+
+    
+    // close datepicker when clicked outside
+    $body.on('click', function (e) {
+
+        var container = $(".andp-datepicker-container, input.andp-date-picker" );
+
+        // if the target of the click isn't the container nor a descendant of the container
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            $(".andp-datepicker-container").removeClass('open').hide();
+        }
+
+    });
+
+
+    // insert/update date only if appy-date button was clicked
+    $body.on('click', '.andp-datepicker-container.open .apply-date', function(){
+
+        // do not proceed if no date was selected
+        var total_user_selected_dates = user_selected_dates.length;
+
+        if( total_user_selected_dates < 1 ) {
+            $(".andp-datepicker-container").removeClass('open').hide();
+            return;
+        }
+
+        // some date were selected, proceed ------------------
+
+        if( single_datepicker ){
+            $selector.attr( 'value',  user_selected_dates[0] );
+        }
+        else{
+
+            // destroy previous hidden input fields
+            $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]').remove();
+            
+            for( i = 0; i <= total_user_selected_dates-1; i++){
+                // generate new hidden input fields
+                generate_hidden_input_fields(user_selected_dates[i]);
+            }
+
+            var output_msg = user_selected_dates[0];
+
+            if( $selector.data('show_all_dates') == true){
+                output_msg = user_selected_dates.join(', ');
+            }
+            else{
+                if( total_user_selected_dates > 1) {
+                    output_msg = total_user_selected_dates + ' dates selected';
+                }
+            }
+
+            // show message to main selector field
+            $selector.attr('value', output_msg );
+            
+        }
+
+        $(".andp-datepicker-container").removeClass('open').hide();
+    })
+
+
+    function init( this_sel){
+
+        // close other instance of calendar
+        $('.andp-datepicker-container').removeClass('open').hide();
+
+        
+        // check if calendar ui has already been generated for selected cal_id
+        var $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
+        if( $sel_calendar.length > 0){
+            $year_select = $sel_calendar.find('.andp-year-select');
+            $month_select = $sel_calendar.find('.andp-month-select');
+            $days_container = $sel_calendar.find('.andp-days-numbers');
+            $sel_calendar.addClass('open').show();
+
+            fix_calendar_alignment();
+            return;
+        }
+
+        var template = '<div class="andp-datepicker-container" data-cal_id="' + cal_id +  '" >';
             template += '<div class = "andp-header">';
-            template += '<button type = "button"  class = "andp-prev andp-change-months"> < </button>';
+            template += '<button type = "button"  class = "andp-prev andp-change-months"> &#10094; </button>';
             template += '<select class = "andp-month-select"> </select>';
             template += '<select class = "andp-year-select"> </select>';
-            template += '<button type = "button" class = "andp-next andp-change-months"> > </button> ';
+            template += '<button type = "button" class = "andp-next andp-change-months"> &#10095; </button> ';
             template += '</div>';
             template += '<div class="andp-body">';
             template += '<div class = "andp-days-names"> <div> SUN </div> <div> MON </div> <div> TUE </div> <div> WED </div> <div> THU </div> <div> FRI </div> <div> SAT </div> </div>';
             template += '<div class = "andp-days-numbers"> </div>';
-            
-            if( !inline_datepicker ){
-                template += '<div class="andp-info" style="display:none"><i class="mdi mdi-information text-primary"></i> Try <strong>Ctrl</strong> or <strong>Shift</strong> key </div>';
-            }
-            template += '<div class="andp-action-btns">';   
-            template += '<button type="button" id="apply-date" data-cal_id="' + cal_id +  '">Apply</button>';
-            template += '</div>';
-            template += '</div>';
-            template += '</div>';
-            
-            $body.append(template);
-
-            $year_select = $('.andp-year-select');
-            $month_select = $('.andp-month-select');
-            $days_container = $('.andp-days-numbers');
-            
-            // add month into month select
-            append_html = '<option value = "1" ' + (('1' == this_month) ? 'selected' : ' ') + ' > Baisakh </option>';
-            append_html += '<option value = "2" ' + (('2' == this_month) ? 'selected' : '') + ' > Jestha </option>';
-            append_html += '<option value = "3" ' + (('3' == this_month) ? 'selected' : '') + ' > Asar </option>';
-            append_html += '<option value = "4" ' + (('4' == this_month) ? 'selected' : '') + ' > Shrawan </option>';
-            append_html += '<option value = "5" ' + (('5' == this_month) ? 'selected' : '') + ' > Bhadra </option>';
-            append_html += '<option value = "6" ' + (('6' == this_month) ? 'selected' : '') + ' > Ashoj </option>';
-            append_html += '<option value = "7" ' + (('7' == this_month) ? 'selected' : '') + ' > Kartik </option>';
-            append_html += '<option value = "8" ' + (('8' == this_month) ? 'selected' : '') + ' > Mangsir </option>';
-            append_html += '<option value = "9" ' + (('9' == this_month) ? 'selected' : '') + ' > Poush </option>';
-            append_html += '<option value = "10" ' + (('10' == this_month) ? 'selected' : '') + ' > Magh </option> ';
-            append_html += '<option value = "11" ' + (('11' == this_month) ? 'selected' : '') + ' > Falgun </option>';
-            append_html += '<option value = "12" ' + (('12' == this_month) ? 'selected' : '') + ' > Chaitra </option>';
-
-            
-            $month_select.append(append_html);
-
-
-            // add year into year select
-            for( i = start_year; i <= end_year; i++){
-                append_html = '<option value="' + i + '"';
-                if(i == this_year){
-                    append_html += ' selected';
-                }
-                append_html += '>'+ i + '</option>';
-                $year_select.append(append_html);
-            }
-
-            generate_days();
-
-
-            $('.andp-month-select, .andp-year-select').change(function(){
-                generate_days();
-            });
-
-
-        }
-
-        function generate_days(){
-
-            month = $month_select.val();
-            year = $year_select.val();
-
-            $days_container.html('');
-
-            var selected_date_obj = new DateConverter();
-            selected_date_obj.setNepaliDate(year, month,1);
-            
-            var month_start_day = selected_date_obj.getDay();
-            var total_days_in_selected_month = getDaysInMonth(year, month);
-
-            var y=1;
-            append_html = '';
-            var j = 1;
-            var k = parseInt(month_start_day) - 2;
-            var l = 1;
-            for(i = 1; i <= 42; i++){
-
-                last_month = parseInt(month) - 1;
-                last_year = parseInt(year);
-
-                if(last_month < 1){
-                    last_month = 12;
-                    last_year = last_year - 1 ;
-
-                    if( last_year < start_year){
-                        last_year = start_year;
-                        last_month = 1;
-                    }
-
-                }
-
-                next_month = parseInt(month) + 1;
-                next_year = parseInt(year);
-
-                var total_days_in_last_month = getDaysInMonth(last_year, last_month);
-
-                if( y == 1){
-                    append_html += '<div class="andp-column">';
-                }
-                
-                if( i < month_start_day ){
-                    append_html += '<div class="old-dates"> ' +  parseInt(total_days_in_last_month - k ) + ' </div>';
-                    k = k-1;
-                }
-                else{
-                    if( j <= total_days_in_selected_month ){
-
-                        proper_date = year + '-' + month + '-' + j;
-
-                        var ar_index = user_selected_dates.indexOf(proper_date);
-
-                        
-                        append_html += '<div class="day ' + (( ar_index >= 0  ) ? ' selected' : '') + '" data-date="' +  proper_date + '">' + j + '</div>';
-                        j++;
-                    }
-                    else{
-                        append_html += '<div  class="old-dates"> ' +  l + '</div>';
-                        l++;
-                    }
-                }
-
-                if( y == 7){
-                append_html += '</div>';
-                    y = 0;
-                }
-
-                // if( j > total_days_in_selected_month){
-                //     break;
-                // }
-
-                
-                y++;
-            
-            }
-            
-            $days_container.append(append_html);
-        }
-
-        function getDaysInMonth(year, month){
-            var converter = new DateConverter();
-            
-            if( year < start_year || year > end_year ) return;
-            if( month < 1 || month > 12 ) return;
-            
-            var year = year - start_year;
-            var month = month -1;
         
-            return converter.nepaliMonths[year][month];
-        
-        }
-
-        function get_days_difference(date_1, date_2){
-
-            date_1 = date_1.split('-');
-            date_2 = date_2.split('-');
-
-            var converter = new DateConverter();
-            converter.setNepaliDate( date_1[0],date_1[1], date_1[2] );
-            return converter.getNepaliDateDifference( date_2[0],date_2[1], date_2[2] );
-        }
-
-        function find_older_date(date_1, date_2){
-            date_1 = date_1.split('-');
-            date_2 = date_2.split('-');
-
-            var converter = new DateConverter();
-            converter.setNepaliDate(date_1[0],date_1[1], date_1[2]);
-            var date_1_eng = [converter.getEnglishYear(), converter.getEnglishMonth(), converter.getEnglishDate()];
-
-            converter.setNepaliDate(date_2[0],date_2[1], date_2[2]);
-            var date_2_eng = [converter.getEnglishYear(), converter.getEnglishMonth(), converter.getEnglishDate()];
-
-            var firstDate = new Date(date_1_eng[0],date_1_eng[1], date_1_eng[2]);
-            var secondDate = new Date(date_2_eng[0],date_2_eng[1], date_2_eng[2]);
-
-            if( firstDate > secondDate ){
-                return 1;
+        if( !single_datepicker ){
+            if( os == 'mac'){
+                control_key = 'CMD';
             }
             else{
-                return false;
+                control_key = 'CTRL';
             }
+            template += '<div class="andp-info" style="display:none"><i class="mdi mdi-information text-primary"></i> Press <strong>' + control_key + '</strong> or <strong>Shift</strong> key for multiple selection </div>';
+        }
+        template += '<div class="andp-action-btns">';   
+        template += '<button type="button" class="apply-date" data-cal_id="' + cal_id +  '">Apply</button>';
+        template += '</div>';
+        template += '</div>';
+        template += '</div>';
+
+        // insert into DOM
+        $body.append(template);
+
+        // re-initiate var, wont work otherwise
+        $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
+
+        $year_select = $sel_calendar.find('.andp-year-select');
+        $month_select = $sel_calendar.find('.andp-month-select');
+        $days_container = $sel_calendar.find('.andp-days-numbers');
+
+        
+        // add month into month select
+        append_html = '<option value = "1" ' + (('1' == this_month) ? 'selected' : ' ') + ' > Baisakh </option>';
+        append_html += '<option value = "2" ' + (('2' == this_month) ? 'selected' : '') + ' > Jestha </option>';
+        append_html += '<option value = "3" ' + (('3' == this_month) ? 'selected' : '') + ' > Asar </option>';
+        append_html += '<option value = "4" ' + (('4' == this_month) ? 'selected' : '') + ' > Shrawan </option>';
+        append_html += '<option value = "5" ' + (('5' == this_month) ? 'selected' : '') + ' > Bhadra </option>';
+        append_html += '<option value = "6" ' + (('6' == this_month) ? 'selected' : '') + ' > Ashoj </option>';
+        append_html += '<option value = "7" ' + (('7' == this_month) ? 'selected' : '') + ' > Kartik </option>';
+        append_html += '<option value = "8" ' + (('8' == this_month) ? 'selected' : '') + ' > Mangsir </option>';
+        append_html += '<option value = "9" ' + (('9' == this_month) ? 'selected' : '') + ' > Poush </option>';
+        append_html += '<option value = "10" ' + (('10' == this_month) ? 'selected' : '') + ' > Magh </option> ';
+        append_html += '<option value = "11" ' + (('11' == this_month) ? 'selected' : '') + ' > Falgun </option>';
+        append_html += '<option value = "12" ' + (('12' == this_month) ? 'selected' : '') + ' > Chaitra </option>';
+
+        $month_select.append(append_html);
+
+        // add year into year select
+        for( i = start_year; i <= end_year; i++){
+            append_html = '<option value="' + i + '"';
+            if(i == this_year){
+                append_html += ' selected';
+            }
+            append_html += '>'+ i + '</option>';
+            $year_select.append(append_html);
         }
 
-        function get_next_day(date_1){
-            date_1 = date_1.split('-');
+        generate_days();
 
-            year =  parseInt(date_1[0]);
-            month = parseInt(date_1[1]);
+        $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]').addClass('open');
 
-            var days_in_month = parseInt(getDaysInMonth( year, month ));
+        fix_calendar_alignment();
+        
+    }
 
-            day = parseInt(date_1[2]) + 1;
-            if( day > days_in_month){
-                day = 1;
-                month = month +1;
-                
-                if( month > 12){
-                    month = 1;
-                    year = year + 1;
+    function fix_calendar_alignment(){
+        
+        // fix calendar layout and position in dom
+        var elem_pos = $selector.offset();
+        var elem_height = $selector.outerHeight();
+        
+        var document_width = $(window).width();
+        var selector_width = $selector.outerWidth();
+        var calendar_width = $('.andp-datepicker-container').outerWidth();
+
+        if( calendar_width + elem_pos.left + 10 > document_width){
+            var right_offset = document_width - (elem_pos.left + selector_width);
+            $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]').css({'top': elem_pos.top + elem_height, 'right': right_offset, 'left': 'inherit' });
+        }
+        else{
+            $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]').css({'top': elem_pos.top + elem_height, 'left': elem_pos.left, 'right': 'inherit' });
+        }
+    }
+
+    function generate_days(){
+
+        month = $month_select.val();
+        year = $year_select.val();
+
+        $days_container.html('');
+
+        var selected_date_obj = new DateConverter();
+        selected_date_obj.setNepaliDate(year, month,1);
+        
+        var month_start_day = selected_date_obj.getDay();
+        var total_days_in_selected_month = getDaysInMonth(year, month);
+
+        append_html = '';
+        var y=1;
+        var j = 1;
+        var k = parseInt(month_start_day) - 2;
+        var l = 1;
+        for(i = 1; i <= 42; i++){
+
+            last_month = parseInt(month) - 1;
+            last_year = parseInt(year);
+
+            if(last_month < 1){
+                last_month = 12;
+                last_year = last_year - 1 ;
+
+                if( last_year < start_year){
+                    last_year = start_year;
+                    last_month = 1;
+                }
+
+            }
+
+            next_month = parseInt(month) + 1;
+            next_year = parseInt(year);
+
+            var total_days_in_last_month = getDaysInMonth(last_year, last_month);
+
+            if( y == 1){
+                append_html += '<div class="andp-column">';
+            }
+            
+            if( i < month_start_day ){
+                append_html += '<div class="old-dates"> ' +  parseInt(total_days_in_last_month - k ) + ' </div>';
+                k = k-1;
+            }
+            else{
+                if( j <= total_days_in_selected_month ){
+
+                    proper_date = year + '-' + month + '-' + j;
+
+                    var ar_index = user_selected_dates.indexOf(proper_date);
+
+                    
+                    append_html += '<div class="day ' + (( ar_index >= 0  ) ? ' selected' : '') + '" data-date="' +  proper_date + '">' + j + '</div>';
+                    j++;
+                }
+                else{
+                    append_html += '<div  class="old-dates"> ' +  l + '</div>';
+                    l++;
                 }
             }
 
-            return year + '-' + month + '-' + day;
+            if( y == 7){
+            append_html += '</div>';
+                y = 0;
+            }
+
+            // if( j > total_days_in_selected_month){
+            //     break;
+            // }
+
+            
+            y++;
+        
+        }
+        
+        $days_container.append(append_html);
+    }
+
+    function getDaysInMonth(year, month){
+        var converter = new DateConverter();
+        
+        if( year < start_year || year > end_year ) return;
+        if( month < 1 || month > 12 ) return;
+        
+        var year = year - start_year;
+        var month = month -1;
+    
+        return converter.nepaliMonths[year][month];
+    
+    }
+
+    function get_days_difference(date_1, date_2){
+
+        date_1 = date_1.split('-');
+        date_2 = date_2.split('-');
+
+        var converter = new DateConverter();
+        converter.setNepaliDate( date_1[0],date_1[1], date_1[2] );
+        return converter.getNepaliDateDifference( date_2[0],date_2[1], date_2[2] );
+    }
+
+    function find_older_date(date_1, date_2){
+        date_1 = date_1.split('-');
+        date_2 = date_2.split('-');
+
+        var converter = new DateConverter();
+        converter.setNepaliDate(date_1[0],date_1[1], date_1[2]);
+        var date_1_eng = [converter.getEnglishYear(), converter.getEnglishMonth(), converter.getEnglishDate()];
+
+        converter.setNepaliDate(date_2[0],date_2[1], date_2[2]);
+        var date_2_eng = [converter.getEnglishYear(), converter.getEnglishMonth(), converter.getEnglishDate()];
+
+        var firstDate = new Date(date_1_eng[0],date_1_eng[1], date_1_eng[2]);
+        var secondDate = new Date(date_2_eng[0],date_2_eng[1], date_2_eng[2]);
+
+        if( firstDate > secondDate ){
+            return 1;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function get_next_day(date_1){
+        date_1 = date_1.split('-');
+
+        year =  parseInt(date_1[0]);
+        month = parseInt(date_1[1]);
+
+        var days_in_month = parseInt(getDaysInMonth( year, month ));
+
+        day = parseInt(date_1[2]) + 1;
+        if( day > days_in_month){
+            day = 1;
+            month = month +1;
+            
+            if( month > 12){
+                month = 1;
+                year = year + 1;
+            }
         }
 
-        function select_date(selected_date, cal_id, force_select=0){
+        return year + '-' + month + '-' + day;
+    }
 
-            var ar_index = user_selected_dates.indexOf(selected_date);
-            var $this = $('.andp-column .day[data-date="' + selected_date + '"]');
+    function select_date(selected_date){
 
-            if( force_select ){
+        var ar_index = user_selected_dates.indexOf(selected_date); // check if selected_date already exists in user_selected_date
+        var $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
+        var $this = $sel_calendar.find('.andp-column .day[data-date="' + selected_date + '"]');
+
+        // if( force_select ){
+        //     $this.addClass('selected');
+        // }
+        // else{
+
+
+            if( ar_index < 0  ){ 
+                // date does not exist in  user_selected_dates array
+                // add selected date into user_selected_dates array
+                user_selected_dates.push(selected_date);
+
+                // mark this day as selected
                 $this.addClass('selected');
             }
             else{
+                // date already added
+                // remove this date from array
+                user_selected_dates.splice(ar_index, 1);
 
-                if( ar_index < 0  ){
-                    // date does not exist
-                    user_selected_dates.push(selected_date);
-                    $this.addClass('selected');
-                }
-                else{
-                    // date already added
-                    user_selected_dates.splice(ar_index, 1);
-                    $this.removeClass('selected');
-                    
-                }
-            }
-        }
-
-
-        // change months
-        $body.on('click', '.andp-change-months', function(event){
-            // show next month
-            selected_month = parseInt($month_select.val()) ;
-            selected_year = parseInt($year_select.val());
-
-            if( $(this).hasClass('andp-next')){
-                selected_month = selected_month + 1;
-                if( selected_month > 12){
-                    selected_month = 1;
-                    selected_year = selected_year + 1;
-
-                    if( selected_year > end_year){
-                        selected_year = end_year;
-                        selected_month = 12;
-                    }
-                }
-            }
-            else{
-                selected_month = selected_month - 1;
-                if( selected_month < 1){
-                    selected_month = 12;
-                    selected_year = selected_year - 1;
-
-                    if( selected_year < start_year){
-                        selected_year = start_year;
-                        selected_month = 1;
-                    }
-                }
-            }
-            
-
-            $month_select.val( selected_month ).change();
-            $year_select.val( selected_year ).change();
-
-        });
-        
-        // if clicked in days when datepicker is open
-        $body.on('click', '.andp-days-numbers .day', function(event){
-            
-            selected_day = $(this).text();
-            selected_date = $(this).data('date'); 
-
-            // disable shift or ctrl key on inline_datepicker
-
-            if( inline_datepicker ){
-                user_selected_dates = [];
-                $('.andp-column .day').removeClass('selected');
-                select_date(selected_date );
-
-                $('.andp-info').hide();
-            }
-            else{
-
-                if (event.shiftKey) {
-
-                    var total_captured_dates = user_selected_dates.length;
-
-                    if( total_captured_dates > 0){
-                        selected_date = $(this).data('date'); 
-                        last_captured_date =  user_selected_dates[total_captured_dates-1];
-
-                        // get older date
-                        var smaller_date = (find_older_date( selected_date, last_captured_date)) ? last_captured_date :  selected_date;
-                        var next_date = smaller_date;
-
-                        var days_difference = get_days_difference(selected_date, last_captured_date);
-
-                        // reset all caputured dates
-                        user_selected_dates = [];
-                        $('.andp-column .day').removeClass('selected');
-
-                        select_date(next_date );
-
-                        for( i = 1; i <= days_difference; i++){
-
-                            next_date = get_next_day(next_date);
-                            select_date(next_date );
-                        }
-                        
-                    }
-                } 
-                else  if (event.ctrlKey || event.metaKey) {
-                    select_date(selected_date );
-                }
-                else{
-                    user_selected_dates = [];
-                    $('.andp-column .day').removeClass('selected');
-                    select_date(selected_date );
-
-                    $('.andp-info').show();
-                    
-                }
-
-            }
-
-            
-
-        })
-
-        // close datepicker when clicked outside
-        $(document).on('click', function (e) {
-
-            var container = $(".andp-datepicker-container, .dsi-datepicker");
-
-            // if the target of the click isn't the container nor a descendant of the container
-            if (!container.is(e.target) && container.has(e.target).length === 0) {
-                $(".andp-datepicker-container").remove();
-            }
-
-        });
-
-
-        // insert/update date only if appy-date button was clicked
-        $(document).on('click', '#apply-date', function(){
-
-            cal_id = $(this).data('cal_id');
-
-            // do not proceed if no date was selected
-            if( user_selected_dates.length < 1 ) {
-                $(".andp-datepicker-container").hide();
-                return;
-            }
-
-            // some date were selected, proceed
-
-            append_html = '';
-            hidden_inputs = '';
-            for( i = 0; i <= user_selected_dates.length-1; i++){
+                // mark as not selected
+                $this.removeClass('selected');
                 
-                if( inline_datepicker ){
-                    $inline_selector.attr( 'value',  user_selected_dates[i] );
-                    $('#sel-date').attr( 'value',  user_selected_dates[i] );
-                }
-                else{
-                    append_html += '<span class="badge badge-dark badge-date">' + user_selected_dates[i] + '</span>';
-                    hidden_inputs += '<input type="hidden" class="hidden-andp-dates dynamic" name="' + hidden_field_name + '[]" data-cal_id="' + cal_id + '" value="' + user_selected_dates[i] + '">';
-
-                    $('.dsi-datepicker[data-cal_id="' + cal_id + '"]').html(append_html);
-                    $('.hidden-andp-dates[data-cal_id="' + cal_id + '"]').remove();
-                    $('#new-ads-form').append(hidden_inputs);
-                }
             }
-
-
-            $(".andp-datepicker-container").remove();
-        })
-
-    };
+        // }
+    }
+    
+    function generate_hidden_input_fields(value){
+        $form.append('<input class="andp-hidden-dates" type="hidden" data-cal_id="' + cal_id + '" name="' + input_field_name + '[]" value="'+ value +'">');
+    }
 
 
 	function DateConverter(){
@@ -639,7 +776,7 @@
 			
 		this.setCurrentDate = function(){
 			var d = new Date();
-			this.setEnglishDate(d.getFullYear(), d.getMonth()+1, d.getDate());
+            this.setEnglishDate(d.getFullYear(), d.getMonth()+1, d.getDate());
 		};
 	
 	
@@ -741,8 +878,11 @@
 		//Nepali to English conversion
 		
 		this.setNepaliDate = function(year, month, date){
-			if(!this.isNepaliRange(year,month,date))
-				throw new Exception("Invalid date format.");
+			if(!this.isNepaliRange(year,month,date)){
+                console.log('Invalid Date Format');
+                // throw new Exception("Invalid date format.");
+                return;
+            }
 	
 			this.nepaliYear = year;
 			this.nepaliMonth = month;
@@ -855,5 +995,5 @@
 		
 		this.getNepaliDate = function(){ return this.nepaliDate; };
 	}
- 
+
 }( jQuery ));

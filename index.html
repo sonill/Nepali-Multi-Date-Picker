@@ -1,0 +1,45 @@
+<!DOCTYPE>
+<html>
+
+<head>
+    <title>Advanced Nepali Date Picker by Sanil Shakya</title>
+    <link rel="stylesheet" href="advanced-nepali-date-picker.css">
+</head>
+
+<body>
+
+    <form action="POST">
+        <label>single Date Picker</label>
+        <input type="text" class="date-picker single" value="2076-10-5" placeholder="Click here to select date">
+        <input type="text" class="date-picker1 single" value="" placeholder="Click here to select date">
+
+    </form>
+
+    <form action="POST">
+        <label>single Date Picker</label>
+        <input type="text" class="date-picker single" value="" placeholder="Click here to select date">
+
+    </form>
+    
+    <form action="POST">
+        <label>Multiple Date Select</label>
+        <input type="text" class="date-picker" value="2075-5-12" name="date1" placeholder="Click here to select date">
+        <input type="text" class="date-picker" value="2076-12-11,2076-12-12,2076-12-13" name="date2" placeholder="Click here to select date">
+    </form>
+
+    <form action="POST">
+        <label>Multiple Date Select</label>
+        <input type="text" class="date-picker1" value="2076-12-11, 2076-12-12, 2076-12-13, 2076-12-16, 2076-12-17, 2076-12-18, 2076-12-19" name="date3" placeholder="Click here to select date" data-show_all_dates="true">
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="advanced-nepali-date-picker.js"></script>
+    <script>
+        jQuery(document).ready(function(){
+            $('.date-picker').advancedNepaliDatePicker();
+            $('.date-picker1').advancedNepaliDatePicker();
+        })
+    </script>
+</body>
+
+</html>

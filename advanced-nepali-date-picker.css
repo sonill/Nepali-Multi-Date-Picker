@@ -1,14 +1,6 @@
-.badge-date{
-    font-weight: normal;
-    font-size: 12px;
-    font-family:arial;
-    margin:2px;
-}
-.dsi-datepicker{
-    cursor:pointer;
 
-}
 .andp-datepicker-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     width: 256px;
     overflow: hidden;
     position:absolute;
@@ -25,7 +17,6 @@
 
 .andp-header {
     background: #2a5acc;
-    /* margin: -8px -8px 0; */
     padding: 10px 0px;
 }
 
@@ -52,15 +43,16 @@
     padding: 0;
     cursor: pointer;
     font-weight: bold;
-    margin-top: 7px;
+    margin-top: 0;
+    font-size: 20px;
     box-sizing: border-box;
     width: 45px;
     text-align: center;
+    outline: none !important;
 }
 
 .andp-prev {
     float: left;
-    /* margin-right: 7px; */
 }
 
 .andp-next {
