@@ -37,14 +37,8 @@ In multi date selection mode, selected date is displayed in 3 different ways.
   ````
   * dates selected
   ````
-  * To show multiple dates as value, use "data-show_all_dates="true" in input field.
+* To show multiple dates as value, use ````data-show_all_dates="true"```` in input field.
 
-By default, 
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
 ## Authors
 
