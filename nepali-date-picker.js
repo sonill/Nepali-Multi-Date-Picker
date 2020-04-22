@@ -39,7 +39,7 @@
     var $selector = ''; // currently active selector
     var $form = ''; // parent form of selected selector
 
-    $.fn.advancedNepaliDatePicker = function(options) {
+    $.fn.nepaliDatePicker = function(options) {
 
         // detect OS
         if (navigator.platform.toUpperCase().indexOf('MAC') >= 0) {
