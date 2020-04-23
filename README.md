@@ -47,4 +47,4 @@ In multi date selection mode, selected date can be displayed in 3 different ways
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+See the <a href="https://github.com/sonill/Nepali-Multi-Date-Picker/blob/master/LICENSE">License file</a> for details
