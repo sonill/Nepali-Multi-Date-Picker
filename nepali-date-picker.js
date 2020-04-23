@@ -6,6 +6,8 @@
     var converter = new DateConverter();
     converter.setCurrentDate();
 
+    let today = converter.nepaliYear + '-' + converter.nepaliMonth + '-' + converter.nepaliDate;
+
     // disable autocomplete
     $('form').attr('autocomplete', 'off');
 
@@ -59,8 +61,15 @@
             // this will run only once
             // generate input hidden fields if date value already exist
             var default_value = $(this).val();
+            data_single = $(this).data('single');
 
-            if (default_value && !$(this).hasClass('single')) {
+            if ( data_single == true || data_single == 1) {
+                single_datepicker = 1;
+            } else {
+                single_datepicker = 0;
+            }
+
+            if (default_value && !single_datepicker) {
 
                 // set form 
                 $form = $(this).parents('form');
@@ -98,7 +107,9 @@
             user_selected_dates = [];
             $selector = $(this);
 
-            if ($(this).hasClass('single')) {
+            data_single = $(this).data('single');
+
+            if ( data_single == true || data_single == 1) {
                 single_datepicker = 1;
             } else {
                 single_datepicker = 0;
@@ -125,6 +136,11 @@
 
                     // select default date
                     select_date(selected_date);
+                }
+                else{
+                    // select default date
+                    select_date(today, true);
+
                 }
 
             } else {
@@ -155,21 +171,36 @@
                         select_date(selected_date);
                     })
 
-                    // last selected date
-                    older_date = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]:last-child').val();
-
-                    // switch calendar to last month and year of selected date
-                    if (older_date && older_date.length > 0) {
-                        older_date_ar = older_date.split('-');
-
+                    if (total_hidden_dates == 1) {
+                        older_date_ar = selected_date.split('-');
                         $month_select.val(older_date_ar[1]).change();
                         $year_select.val(older_date_ar[0]).change();
                     }
+                    else{
+
+                        // last selected date
+                        older_date = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]:last-child').val();
+
+                        // switch calendar to last month and year of selected date
+                        if (older_date && older_date.length > 0) {
+                            older_date_ar = older_date.split('-');
+
+                            $month_select.val(older_date_ar[1]).change();
+                            $year_select.val(older_date_ar[0]).change();
+                        }
+
+                    }
+
+                }
+                else{
+                    // select default date
+                    select_date(today, true);
                 }
 
             }
 
         })
+
 
         // update days when month or year is changed
         $body.on('change', '.andp-month-select, .andp-year-select', function() {
@@ -298,8 +329,6 @@
 
         }
 
-
-
     })
 
 
@@ -330,7 +359,7 @@
         // some date were selected, proceed ------------------
 
         if (single_datepicker) {
-            $selector.attr('value', user_selected_dates[0]);
+            $selector.attr('value', user_selected_dates[0]).val(user_selected_dates[0]);
         } else {
 
             // destroy previous hidden input fields
@@ -352,7 +381,7 @@
             }
 
             // show message to main selector field
-            $selector.attr('value', output_msg);
+            $selector.attr('value', output_msg).val(output_msg);
 
         }
 
@@ -364,7 +393,6 @@
 
         // close other instance of calendar
         $('.andp-datepicker-container').removeClass('open').hide();
-
 
         // check if calendar ui has already been generated for selected cal_id
         var $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
@@ -619,35 +647,34 @@
         return year + '-' + month + '-' + day;
     }
 
-    function select_date(selected_date) {
+    function select_date(selected_date, soft_select = false) {
 
         var ar_index = user_selected_dates.indexOf(selected_date); // check if selected_date already exists in user_selected_date
         var $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
         var $this = $sel_calendar.find('.andp-column .day[data-date="' + selected_date + '"]');
 
-        // if( force_select ){
-        //     $this.addClass('selected');
-        // }
-        // else{
-
-
-        if (ar_index < 0) {
-            // date does not exist in  user_selected_dates array
-            // add selected date into user_selected_dates array
-            user_selected_dates.push(selected_date);
-
-            // mark this day as selected
-            $this.addClass('selected');
-        } else {
-            // date already added
-            // remove this date from array
-            user_selected_dates.splice(ar_index, 1);
-
-            // mark as not selected
-            $this.removeClass('selected');
-
+        if( soft_select ){
+            $this.addClass('soft-select');
         }
-        // }
+        else{
+
+            if (ar_index < 0) {
+                // date does not exist in  user_selected_dates array
+                // add selected date into user_selected_dates array
+                user_selected_dates.push(selected_date);
+
+                // mark this day as selected
+                $this.addClass('selected');
+            } else {
+                // date already added
+                // remove this date from array
+                user_selected_dates.splice(ar_index, 1);
+
+                // mark as not selected
+                $this.removeClass('selected');
+
+            }
+        }
     }
 
     function generate_hidden_input_fields(value) {

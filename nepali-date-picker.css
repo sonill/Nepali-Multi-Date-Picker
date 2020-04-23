@@ -105,6 +105,11 @@
     border-color:#2a5acc;
 }
 
+.andp-column div.soft-select {
+    background:#dedede;
+    border-color:#dedede;
+}
+
 .andp-info {
     font-size: 12px;
     margin-top: 9px;
