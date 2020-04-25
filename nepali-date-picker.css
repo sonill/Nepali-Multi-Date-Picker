@@ -100,9 +100,9 @@
 }
 
 .andp-column div.selected {
-    background:#2a5acc;
+    background:#2a5acc !important;
     color:#fff;
-    border-color:#2a5acc;
+    border-color:#2a5acc !important;
 }
 
 .andp-column div.soft-select {
