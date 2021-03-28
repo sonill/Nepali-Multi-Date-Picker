@@ -53,6 +53,8 @@
 		// give calendar a unique id
 		$(this).each(function( ) {
 
+            let $this = $(this);
+
 			// give unique id to each calendar instance
 			$(this).attr('data-cal_id', 'cal-' + cal_no);
 			cal_no++;
@@ -63,14 +65,16 @@
 
 			// this will run only once
 			// generate input hidden fields if date value already exist
-			var default_value = $.trim( $(this).val() );
-			data_single = $(this).data('single');
+			var default_value = $.trim( $(this).attr('value') );
+
+			let data_single = $(this).data('single');
 
 			if ( data_single == true || data_single == 1) {
 				single_datepicker = 1;
 			} else {
 				single_datepicker = 0;
 			}
+
 
 			if (default_value && !single_datepicker) {
 
@@ -80,15 +84,24 @@
 				// set calendar id
 				cal_id = $(this).data('cal_id');
 
+
+
 				// this will be used to generate hidden input fields with same input name
 				input_field_name = $(this).attr('name');
 
-				var default_dates = default_value.split(',');
+				let default_dates = default_value.split(',');
 				default_dates.forEach(function(item, index) {
 					generate_hidden_input_fields(item.trim());
+
+                    // show default date in container,
+                    // if "data-show_all-dates" = true
+                    // and input type is div.
+
+                    // console.log ( $(this) );
+
 				})
 
-				if ($(this).data('show_all_dates') != true ) {
+				if ( $(this).data('show_all_dates') != true ) {
 
 					if (default_dates.length > 1) {
 						output_msg = default_dates.length + ' dates selected';
@@ -98,7 +111,21 @@
 
 					// show message to main selector field
 					$(this).attr('value', output_msg);
-				}
+
+				} else {
+
+                    // "data-show_all-dates" = true
+
+                    if ( ! $this.is( 'input' ) ) {
+                        // input type is not "input".
+                        // show all default values into selected container.
+
+                        let default_dates = default_value.split(',');
+                        let temp_markup = '<span>' + default_dates.join( '</span><span>' ) + '</span>';
+                        $this.append( temp_markup );
+
+                    }
+                }
 
 			}
 		})
@@ -124,6 +151,7 @@
 			// set calendar id
 			cal_id = $(this).data('cal_id');
 
+
 			// initiate calendar ui
 			init(this);
 
@@ -144,6 +172,7 @@
 					select_date(selected_date);
 				}
 				else{
+
 					// select default date
 					select_date(today, true);
 
@@ -169,7 +198,7 @@
 				var $hidden_publish_dates = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]');
 				var total_hidden_dates = $hidden_publish_dates.length;
 
-				if (total_hidden_dates > 0) {
+				if ( total_hidden_dates > 0 ) {
 
 					// select all dates in calendar ui
 					$hidden_publish_dates.each(function() {
