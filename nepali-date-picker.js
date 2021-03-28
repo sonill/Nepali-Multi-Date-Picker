@@ -53,7 +53,7 @@
 		// give calendar a unique id
 		$(this).each(function( ) {
 
-            let $this = $(this);
+			let $this = $(this);
 
 			// give unique id to each calendar instance
 			$(this).attr('data-cal_id', 'cal-' + cal_no);
@@ -104,18 +104,18 @@
 
 				} else {
 
-                    // "data-show_all-dates" = true
+					// "data-show_all-dates" = true
 
-                    if ( ! $this.is( 'input' ) ) {
-                        // input type is not "input".
-                        // show all default values into selected container.
+					if ( ! $this.is( 'input' ) ) {
+						// input type is not "input".
+						// show all default values into selected container.
 
-                        let default_dates = default_value.split(',');
-                        let temp_markup = '<span>' + default_dates.join( '</span><span>' ) + '</span>';
-                        $this.append( temp_markup );
+						let default_dates = default_value.split(',');
+						let temp_markup = '<span>' + default_dates.join( '</span><span>' ) + '</span>';
+						$this.append( temp_markup );
 
-                    }
-                }
+					}
+				}
 
 			}
 		})
@@ -147,7 +147,7 @@
 			if ( single_datepicker ) {
 
 				// inline calendar
-				selected_date = $(this).val();
+				selected_date = format_date_yyyy_mm_dd( $(this).val() );
 
 				// add this date into selected dates arary
 
@@ -158,8 +158,8 @@
 					$month_select.val(older_date_ar[1]).change();
 					$year_select.val(older_date_ar[0]).change();
 
-					// select default date
 					select_date(selected_date);
+
 				}
 				else{
 
@@ -190,24 +190,23 @@
 
 				if ( total_hidden_dates > 0 ) {
 
-					// select all dates in calendar ui
-					$hidden_publish_dates.each(function() {
-						selected_date = $(this).val();
-						select_date(selected_date);
-					})
-
 					if (total_hidden_dates == 1) {
+
+						selected_date = format_date_yyyy_mm_dd( $hidden_publish_dates.eq(0).val() );
 						older_date_ar = selected_date.split('-');
 
 						$month_select.val(older_date_ar[1]).change();
 						$year_select.val(older_date_ar[0]).change();
+
+                        // mark all selected dates as selexted in calendar ui.
+					    select_date(selected_date);
 					}
 					else{
 
 						// last selected date
 						older_date = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]');
-                        let total_older_date = older_date.length;
-                        older_date = older_date.eq( ( total_older_date - 1 ) ).val();
+						let total_older_date = older_date.length;
+						older_date = format_date_yyyy_mm_dd( older_date.eq( ( total_older_date - 1 ) ).val() );
 
 						// switch calendar to last month and year of selected date
 						if (older_date && older_date.length > 0) {
@@ -216,6 +215,16 @@
 							$month_select.val(older_date_ar[1]).change();
 							$year_select.val(older_date_ar[0]).change();
 						}
+
+                        $hidden_publish_dates.each(function(){
+
+                            let sel_date = format_date_yyyy_mm_dd( $(this).val() );
+
+                            // mark all selected dates as selexted in calendar ui.
+                            select_date( sel_date );
+
+                        })
+
 
 					}
 
@@ -269,6 +278,13 @@
 			}
 		}
 
+        if ( selected_month < 10 ) {
+            selected_month = '0' + selected_month;
+        }
+
+        if ( selected_year < 10 ) {
+            selected_year = '0' + selected_year;
+        }
 
 		$month_select.val(selected_month).change();
 		$year_select.val(selected_year).change();
@@ -386,6 +402,17 @@
 	})
 
 
+	function format_date_yyyy_mm_dd( date ) {
+		let date_ar = date.split( '-' );
+		let new_date = date_ar[0] + '-';
+		new_date += ( date_ar[1].length == 1 ) ? '0' + date_ar[1] : date_ar[1];
+		new_date += '-';
+		new_date += ( date_ar[2].length == 1 ) ? '0' + date_ar[2] : date_ar[2];
+
+		return new_date;
+
+	}
+
 	function update_sel_date_in_ui() {
 
 		// do not proceed if no date was selected
@@ -407,14 +434,7 @@
 
 		if (single_datepicker) {
 
-			if ( $selector.is( ':input' ) ) {
-				$selector.attr('value', user_selected_dates[0]).val(user_selected_dates[0]);
-
-			} else {
-
-				let temp_markup = '<span>' + user_selected_dates.join( '</span><span>' ) + '</span>';
-				$selector.append( temp_markup);
-			}
+			$selector.attr('value', user_selected_dates[0]).val( user_selected_dates[0] );
 
 		} else {
 
@@ -441,8 +461,8 @@
 				if (total_user_selected_dates > 1) {
 					output_msg = total_user_selected_dates + ' dates selected';
 				} else {
-                    output_msg = user_selected_dates[0];
-                }
+					output_msg = user_selected_dates[0];
+				}
 			}
 
 			// show message to main selector field
@@ -519,15 +539,15 @@
 		$days_container = $sel_calendar.find('.andp-days-numbers');
 
 		// add month into month select
-		append_html = '<option value = "1" ' + (('1' == this_month) ? 'selected' : ' ') + ' > Baisakh </option>';
-		append_html += '<option value = "2" ' + (('2' == this_month) ? 'selected' : '') + ' > Jestha </option>';
-		append_html += '<option value = "3" ' + (('3' == this_month) ? 'selected' : '') + ' > Asar </option>';
-		append_html += '<option value = "4" ' + (('4' == this_month) ? 'selected' : '') + ' > Shrawan </option>';
-		append_html += '<option value = "5" ' + (('5' == this_month) ? 'selected' : '') + ' > Bhadra </option>';
-		append_html += '<option value = "6" ' + (('6' == this_month) ? 'selected' : '') + ' > Ashoj </option>';
-		append_html += '<option value = "7" ' + (('7' == this_month) ? 'selected' : '') + ' > Kartik </option>';
-		append_html += '<option value = "8" ' + (('8' == this_month) ? 'selected' : '') + ' > Mangsir </option>';
-		append_html += '<option value = "9" ' + (('9' == this_month) ? 'selected' : '') + ' > Poush </option>';
+		append_html = '<option value = "01" ' + (('01' == this_month) ? 'selected' : ' ') + ' > Baisakh </option>';
+		append_html += '<option value = "02" ' + (('02' == this_month) ? 'selected' : '') + ' > Jestha </option>';
+		append_html += '<option value = "03" ' + (('03' == this_month) ? 'selected' : '') + ' > Asar </option>';
+		append_html += '<option value = "04" ' + (('04' == this_month) ? 'selected' : '') + ' > Shrawan </option>';
+		append_html += '<option value = "05" ' + (('05' == this_month) ? 'selected' : '') + ' > Bhadra </option>';
+		append_html += '<option value = "06" ' + (('06' == this_month) ? 'selected' : '') + ' > Ashoj </option>';
+		append_html += '<option value = "07" ' + (('07' == this_month) ? 'selected' : '') + ' > Kartik </option>';
+		append_html += '<option value = "08" ' + (('08' == this_month) ? 'selected' : '') + ' > Mangsir </option>';
+		append_html += '<option value = "09" ' + (('09' == this_month) ? 'selected' : '') + ' > Poush </option>';
 		append_html += '<option value = "10" ' + (('10' == this_month) ? 'selected' : '') + ' > Magh </option> ';
 		append_html += '<option value = "11" ' + (('11' == this_month) ? 'selected' : '') + ' > Falgun </option>';
 		append_html += '<option value = "12" ' + (('12' == this_month) ? 'selected' : '') + ' > Chaitra </option>';
@@ -592,7 +612,7 @@
 		var total_days_in_selected_month = getDaysInMonth(year, month);
 
 		append_html = '';
-		var y = 1;
+		var y = 1; // year
 		var j = 1;
 		var k = parseInt(month_start_day) - 2;
 		var l = 1;
@@ -625,14 +645,14 @@
 				append_html += '<div class="old-dates"> ' + parseInt(total_days_in_last_month - k) + ' </div>';
 				k = k - 1;
 			} else {
-				if (j <= total_days_in_selected_month) {
+				if (j <= total_days_in_selected_month ) {
 
-					proper_date = year + '-' + month + '-' + j;
+					let day         = ( j < 10 ? '0' + j : j );
+					let proper_date = year + '-' + month + '-' + day;
+                    let ar_index    = user_selected_dates.indexOf(proper_date);
 
-					var ar_index = user_selected_dates.indexOf(proper_date);
-
-
-					append_html += '<div class="day ' + ((ar_index >= 0) ? ' selected' : '') + '" data-date="' + proper_date + '">' + j + '</div>';
+                    // ( ( ar_index >= 0 ) ? ' selected' : '' ) = mark selected days as selected, even after calendar close or year/month change.
+					append_html += '<div class="day' + ( ( ar_index >= 0 ) ? ' selected' : '' ) + '" data-date="' + proper_date + '">' + j + '</div>';
 					j++;
 				} else {
 					append_html += '<div  class="old-dates"> ' + l + '</div>';
@@ -720,9 +740,11 @@
 
 	function select_date(selected_date, soft_select = false) {
 
+		selected_date = format_date_yyyy_mm_dd( selected_date );
+
 		var ar_index = user_selected_dates.indexOf(selected_date); // check if selected_date already exists in user_selected_date
 		var $sel_calendar = $('.andp-datepicker-container[data-cal_id="' + cal_id + '"]');
-		var $this = $sel_calendar.find('.andp-column .day[data-date="' + selected_date + '"]');
+		var $this = $sel_calendar.find('.day[data-date="' + selected_date + '"]');
 
 		if( soft_select ){
 			$this.addClass('soft-select');
@@ -732,7 +754,7 @@
 			if ( ar_index < 0 ) {
 				// date does not exist in  user_selected_dates array
 				// add selected date into user_selected_dates array
-				user_selected_dates.push(selected_date);
+				user_selected_dates.push( selected_date );
 
 				// mark this day as selected
 				$this.addClass('selected');
