@@ -62,7 +62,6 @@
 			// add common class to all input fields
 			$(this).addClass('andp-date-picker');
 
-
 			// this will run only once
 			// generate input hidden fields if date value already exist
 			var default_value = $.trim( $(this).attr('value') );
@@ -75,7 +74,6 @@
 				single_datepicker = 0;
 			}
 
-
 			if (default_value && !single_datepicker) {
 
 				// set form
@@ -84,21 +82,13 @@
 				// set calendar id
 				cal_id = $(this).data('cal_id');
 
-
-
 				// this will be used to generate hidden input fields with same input name
 				input_field_name = $(this).attr('name');
 
 				let default_dates = default_value.split(',');
 				default_dates.forEach(function(item, index) {
+
 					generate_hidden_input_fields(item.trim());
-
-                    // show default date in container,
-                    // if "data-show_all-dates" = true
-                    // and input type is div.
-
-                    // console.log ( $(this) );
-
 				})
 
 				if ( $(this).data('show_all_dates') != true ) {
@@ -151,11 +141,10 @@
 			// set calendar id
 			cal_id = $(this).data('cal_id');
 
-
 			// initiate calendar ui
 			init(this);
 
-			if (single_datepicker) {
+			if ( single_datepicker ) {
 
 				// inline calendar
 				selected_date = $(this).val();
@@ -165,6 +154,7 @@
 				// switch calendar to selected month and year
 				if (selected_date.length > 0) {
 					older_date_ar = selected_date.split('-');
+
 					$month_select.val(older_date_ar[1]).change();
 					$year_select.val(older_date_ar[0]).change();
 
@@ -208,13 +198,16 @@
 
 					if (total_hidden_dates == 1) {
 						older_date_ar = selected_date.split('-');
+
 						$month_select.val(older_date_ar[1]).change();
 						$year_select.val(older_date_ar[0]).change();
 					}
 					else{
 
 						// last selected date
-						older_date = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]:last-child').val();
+						older_date = $('input.andp-hidden-dates[data-cal_id="' + cal_id + '"]');
+                        let total_older_date = older_date.length;
+                        older_date = older_date.eq( ( total_older_date - 1 ) ).val();
 
 						// switch calendar to last month and year of selected date
 						if (older_date && older_date.length > 0) {
@@ -447,7 +440,9 @@
 			} else {
 				if (total_user_selected_dates > 1) {
 					output_msg = total_user_selected_dates + ' dates selected';
-				}
+				} else {
+                    output_msg = user_selected_dates[0];
+                }
 			}
 
 			// show message to main selector field
@@ -456,7 +451,6 @@
 				$selector.attr('value', output_msg).val(output_msg);
 
 			} else {
-
 				$selector.html( output_msg );
 			}
 
