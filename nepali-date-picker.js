@@ -434,7 +434,7 @@
 
 		if (single_datepicker) {
 
-			$selector.attr('value', user_selected_dates[0]).val( user_selected_dates[0] );
+			$selector.attr('value', user_selected_dates[0]).val( user_selected_dates[0] ).change();
 
 		} else {
 
