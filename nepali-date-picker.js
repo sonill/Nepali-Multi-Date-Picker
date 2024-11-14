@@ -25,7 +25,7 @@
 
     // is this single datepicker
     var single_datepicker = 0;
-    var locale = 'en';
+    var locale = 'np';
 
     // calendar ui selector
     var $year_select = '';
