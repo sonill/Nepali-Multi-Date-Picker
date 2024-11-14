@@ -415,6 +415,11 @@
 
 
     function format_date_yyyy_mm_dd( date ) {
+
+        if( date.length < 1 )  {
+            return '';
+        }
+
         let date_ar = date.split( '-' );
         let new_date = date_ar[0] + '-';
         new_date += ( date_ar[1].length == 1 ) ? '0' + date_ar[1] : date_ar[1];
@@ -521,7 +526,7 @@
         template += '</div>';
         template += '<div class="andp-body">';
 
-        if( locale = 'np') {
+        if( locale == 'np') {
             template += '<div class = "andp-days-names"> <div> आ </div> <div> सो </div> <div> मं </div> <div> बु </div> <div> बि </div> <div> शु </div> <div> श </div> </div>';
         }
         else {
