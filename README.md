@@ -34,6 +34,14 @@ By default it is in multiple date selection mode. If you want to use single date
 <input class="datepicker" data-single="true">
 ```
 
+## Nepali Locale
+
+To display calendar in Nepali language pass  ```locale="np"``` in your markup.
+
+```
+<input class="datepicker" data-single="true" data-locale="np">
+```
+
 ## Options
 
 In multiple date selection mode, selected date can be displayed in 3 different ways.
