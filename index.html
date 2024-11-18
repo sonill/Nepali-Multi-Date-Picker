@@ -49,7 +49,27 @@
 							<div class="col-sm-6">
 								<label for="staticEmail" class="col-form-label">Example 2</label>
 								<input type="text" class="date-picker form-control" data-single="true" name="date2"
-									value="2076-10-5" placeholder="Click here to select date">
+									value="2076-1-5" placeholder="Click here to select date">
+							</div>
+						</div>
+
+					</form>
+
+					<h4 class="mb-3">Multiple Locale</h4>
+
+					<form action="POST">
+
+						<div class="form-group row">
+							<div class="col-sm-6">
+								<label for="staticEmail" class="col-form-label">Example 1.1</label>
+								<input type="text" class="date-picker form-control" data-single="1" data-locale="np" name="date1" value=""
+									placeholder="Click here to select date">
+							</div>
+
+							<div class="col-sm-6">
+								<label for="staticEmail" class="col-form-label">Example 2.1</label>
+								<input type="text" class="date-picker form-control" data-single="true" data-locale="en" name="date2"
+									value="2076-1-5" placeholder="Click here to select date">
 							</div>
 						</div>
 
@@ -74,13 +94,13 @@
 
 							<div class="col-sm-4">
 								<label for="staticEmail" class="col-form-label">Example 5</label>
-								<input type="text" class="date-picker form-control" value="2076-12-11, 2076-12-12"
+								<input type="text" class="date-picker form-control" value="2076-12-11,   2076-12-12"
 									name="date5" placeholder="Click here to select date" data-show_all_dates="true">
 							</div>
 
 							<div class="col-sm-12 mt-3">
 								<label for="staticEmail" class="col-form-label">Example 6</label>
-								<div class="date-picker form-control" value="2076-12-14, 2076-12-15" name="date6" data-show_all_dates="true"></div>
+								<div class="date-picker form-control" value="2076-1-1, 2076-1-5" name="date6" data-show_all_dates="true"></div>
 							</div>
 						</div>
 
@@ -109,6 +129,10 @@ $('.datepicker').nepaliDatePicker();</code></pre>
 					<p>By default it is in multiple date selection mode. If you want to use single date selection mode then
 						just add <code>data-single="true"</code> in your markup.</p>
 					<pre><code class="language-markup">&lt;input class="datepicker" data-single="true"&gt;</code></pre>
+
+					<h4 class="mt-5">Nepali or English Language</h4>
+					<p>By default calendar will show in Nepali lanauge. To show in English lanuage jsut add <code>data-locale="en"</code> into your markup .</p>
+					<pre><code class="language-markup">&lt;input class="datepicker" data-locale="np"&gt;</code></pre>
 
 					<h4 class="mt-5">Options</h4>
 					<p>In multiple date selection mode, selected date can be displayed in 3 different ways.</p>
