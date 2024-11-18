@@ -70,6 +70,8 @@
             let data_single = $(this).data('single');
             locale = $(this).data('locale');
 
+            console.log('locale', locale );
+
             if ( data_single == true || data_single == 1) {
                 single_datepicker = 1;
             } else {
