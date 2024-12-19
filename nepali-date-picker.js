@@ -46,6 +46,9 @@
 	var $selector = ''; // currently active selector
 	var $form = ''; // parent form of selected selector
 
+	var date_before = '';
+	var date_after = '';
+
 	var sel_input;
 
 	$.fn.nepaliDatePicker = function () {
@@ -70,7 +73,6 @@
 			var default_value = $.trim($(this).attr('value'));
 
 			let data_single = $(this).data('single');
-			// locale = $(this).data('locale');
 
 			if (data_single == true || data_single == 1) {
 				single_datepicker = 1;
@@ -137,6 +139,18 @@
 			locale = $(this).data('locale');
 			locale = locale ? locale : 'np';
 
+			date_after = $(this).data('date_after');
+			if (date_after) {
+				let date_after_ar = date_after.split('-');
+				start_year = parseInt(date_after_ar[0]);
+			}
+
+			date_before = $(this).data('date_before');
+			if (date_before) {
+				let date_before_ar = date_before.split('-');
+				end_year = parseInt(date_before_ar[0]);
+			}
+
 			// set calendar id
 			cal_id = $(this).data('cal_id');
 
@@ -145,7 +159,7 @@
 
 			if (single_datepicker) {
 				// inline calendar
-				selected_date = format_date_yyyy_mm_dd($(this).val());
+				let selected_date = format_date_yyyy_mm_dd($(this).val());
 
 				// add this date into selected dates arary
 
@@ -296,6 +310,10 @@
 		function (event) {
 			selected_day = $(this).text();
 			selected_date = $(this).data('date');
+
+			if ($(this).hasClass('disabled')) {
+				return;
+			}
 
 			var $sel_calendar = $(
 				'.andp-datepicker-container[data-cal_id="' + cal_id + '"]'
@@ -729,9 +747,29 @@
 					let proper_date = year + '-' + month + '-' + day;
 					let ar_index = user_selected_dates.indexOf(proper_date);
 
+					let compare_date_after = converter.compareDate(
+						proper_date,
+						date_after
+					);
+					let compare_date_before = converter.compareDate(
+						proper_date,
+						date_before
+					);
+
+					let css_class = '';
+
+					if (compare_date_after == 2 ? ' disabled old-dates' : '') {
+						css_class = ' disabled old-dates';
+					} else if (compare_date_before == 1 ? ' disabled old-dates' : '') {
+						css_class = ' disabled old-dates';
+					} else {
+						css_class = 'day';
+					}
+
 					// ( ( ar_index >= 0 ) ? ' selected' : '' ) = mark selected days as selected, even after calendar close or year/month change.
 					append_html +=
-						'<div class="day' +
+						'<div class="' +
+						css_class +
 						(ar_index >= 0 ? ' selected' : '') +
 						'" data-date="' +
 						proper_date +
@@ -947,35 +985,35 @@
 			[31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30],
 			[31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31],
 			[31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30],
-			[31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30], //2071
-			[31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30], //2072
-			[31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31], //2073
-			[31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30],
-			[31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
+			[31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30], // 2071
+			[31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30], // 2072
+			[31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31], // 2073
+			[31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30], // 2074
+			[31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30], // 2075
 			[31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30], // 2076
-			[31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31],
-			[31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30],
-			[31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
-			[31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30],
-			[31, 31, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 30, 30],
-			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30],
-			[30, 31, 32, 32, 30, 31, 30, 30, 29, 30, 30, 30],
-			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], //2090
-			[31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30],
-			[30, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 31, 32, 31, 31, 31, 30, 29, 30, 30, 30, 30],
-			[30, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30],
-			[31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30],
-			[31, 31, 32, 31, 31, 31, 29, 30, 29, 30, 29, 31],
-			[31, 31, 32, 31, 31, 31, 30, 29, 29, 30, 30, 30], //2099
+			[31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31], // 2077
+			[31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30], // 2078
+			[31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30], // 2079
+			[31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30], // 2080
+			[31, 31, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2081
+			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2082
+			[31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30], // 2083
+			[31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30], // 2084
+			[31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 30, 30], // 2085
+			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2086
+			[31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30], // 2087
+			[30, 31, 32, 32, 30, 31, 30, 30, 29, 30, 30, 30], // 2088
+			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2089
+			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2090
+			[31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30], // 2091
+			[30, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2092
+			[30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2093
+			[31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30], // 2094
+			[31, 31, 32, 31, 31, 31, 30, 29, 30, 30, 30, 30], // 2095
+			[30, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30], // 2096
+			[31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30], // 2097
+			[31, 31, 32, 31, 31, 31, 29, 30, 29, 30, 29, 31], // 2098
+			[31, 31, 32, 31, 31, 31, 30, 29, 29, 30, 30, 30], // 2099
 		];
 
 		this.setCurrentDate = function () {
@@ -1206,6 +1244,26 @@
 
 		this.getNepaliDate = function () {
 			return this.nepaliDate;
+		};
+
+		this.compareDate = function (date1, date2) {
+			// 1  = date 1 is later / bigger
+			// 0 = both dates are equal
+			// 2 = date 2 is later / bigger
+
+			const [year1, month1, day1] = date1.split('-').map(Number);
+			const [year2, month2, day2] = date2.split('-').map(Number);
+
+			if (year1 < year2) return 2;
+			if (year1 > year2) return 1;
+
+			if (month1 < month2) return 2;
+			if (month1 > month2) return 1;
+
+			if (day1 < day2) return 2;
+			if (day1 > day2) return 1;
+
+			return 0;
 		};
 	}
 })(jQuery);
